@@ -1,0 +1,609 @@
+/* ==========================================================================
+   БАЗОВЫЕ СТИЛИ И СБРОС НАСТРОЕК
+   ========================================================================== */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: #0b0d12; /* Глубокий темный фон сайта */
+    color: #ffffff;
+    min-height: 100vh;
+}
+
+.wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px 20px 150px 20px; /* Отступ снизу, чтобы плеер не перекрывал контент */
+}
+
+/* ==========================================================================
+   ШАПКА И СЕКЦИЯ ПОИСКА
+   ========================================================================== */
+.main-header {
+    margin-bottom: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    padding-top: 20px;
+}
+
+/* Оболочка для центрирования элементов меню на одной линии */
+.tabs-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    margin-bottom: 25px;
+}
+
+/* Контейнер кнопок */
+.tabs-control {
+    display: flex;
+    gap: 12px;
+    background: #141822;
+    padding: 6px;
+    border-radius: 30px;
+    border: 1px solid #1e222b;
+}
+
+/* Кнопки-прямоугольники */
+.tab-btn {
+    background: transparent;
+    color: #a0a5b5;
+    border: none;
+    padding: 10px 28px;
+    min-width: 140px;
+    border-radius: 24px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+    color: #fff;
+}
+
+/* Активная вкладка */
+.tab-btn.active {
+    background: #00e676;
+    color: #0b0e14;
+    box-shadow: 0 4px 12px rgba(0, 230, 118, 0.2);
+}
+
+/* Блок профиля пользователя */
+.auth-zone {
+    position: absolute;
+    right: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Баннер Твои сохраненные треки */
+.favorites-header-banner {
+    width: 100%;
+    background: #141822;
+    border: 1px solid #1e222b;
+    padding: 18px;
+    border-radius: 14px;
+    text-align: center;
+    color: #00e676;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+/* СЕТКА КАРТОЧЕК ТРЕКОВ */
+.tracks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 20px;
+}
+
+.track-card {
+    background: #121620;
+    border: 1px solid #1d222d;
+    border-radius: 10px;
+    padding: 12px;
+    cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+}
+
+.track-card:hover {
+    transform: translateY(-4px);
+    border-color: #2c313d;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+
+.track-card.active-playing {
+    border-color: #00ff87;
+    box-shadow: 0 0 12px rgba(0, 255, 135, 0.15);
+    background: #141f24;
+}
+
+.track-cover {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 6px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+.play-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    border-radius: 6px;
+}
+
+.track-card:hover .play-overlay {
+    opacity: 1;
+}
+
+.track-card.active-playing .play-overlay {
+    opacity: 1;
+    color: #00ff87;
+}
+
+/* Кнопка Лайка на карточке */
+.card-heart-trigger {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(17, 20, 26, 0.8);
+    border: none;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    z-index: 20;
+    transition: transform 0.2s;
+    outline: none;
+}
+
+.card-heart-trigger:hover {
+    transform: scale(1.15);
+}
+
+.track-info {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.track-title {
+    margin: 4px 0 2px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.track-artist {
+    margin: 0;
+    font-size: 12px;
+    color: #8c92a0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Контейнер для панелей */
+.panels-container {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Стили панелей */
+.tab-panel {
+    display: none;
+    width: 100%;
+}
+
+.tab-panel.active {
+    display: block;
+}
+
+/* Панель фильтров Миксера */
+.wave-filters {
+    display: flex;
+    gap: 15px;
+    background: #141822;
+    padding: 20px;
+    border-radius: 14px;
+    border: 1px solid #1e222b;
+    align-items: flex-end;
+    justify-content: space-between;
+}
+
+/* Выпадающие списки */
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+}
+
+.filter-group label {
+    font-size: 11px;
+    color: #6c7283;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+.filter-group select {
+    background: #1e222b;
+    color: #fff;
+    border: 1px solid #2c313d;
+    padding: 11px 14px;
+    border-radius: 8px;
+    outline: none;
+    cursor: pointer;
+    font-size: 14px;
+    width: 100%;
+}
+
+/* Кнопка запуска */
+#start-wave-btn {
+    background: #00e676;
+    color: #0b0e14;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+/* Контейнер поиска */
+.search-container {
+    display: flex;
+    gap: 10px;
+    background: #141822;
+    padding: 20px;
+    border-radius: 14px;
+    border: 1px solid #1e222b;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+.search-container input {
+    flex: 1;
+    background: #1e222b;
+    border: 1px solid #2c313d;
+    padding: 12px 16px;
+    border-radius: 8px;
+    color: #fff;
+    outline: none;
+    font-size: 14px;
+    min-width: 200px;
+}
+
+.search-container button {
+    background: #00e676;
+    color: #0b0e14;
+    border: none;
+    padding: 0 24px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 14px;
+    transition: transform 0.1s;
+}
+
+.search-container button:hover {
+    background: #00c865;
+}
+
+/* ==========================================================================
+   НИЖНИЙ МЕДИАПЛЕЕР
+   ========================================================================== */
+.bottom-player-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #11141a; 
+    padding: 16px 24px 12px 24px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    z-index: 999;
+    border-top: 1px solid #1d222d;
+    box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.5);
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease, visibility 0.3s;
+}
+
+.bottom-player-bar.visible {
+    visibility: visible;
+    opacity: 1;
+}
+
+.player-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    height: 60px;
+}
+
+.player-left-zone {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 30%; 
+    min-width: 220px;
+}
+
+.now-playing-album-art {
+    width: 52px;
+    height: 52px;
+    border-radius: 6px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background-color: #161a23;
+}
+
+.track-text-block {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.now-playing-title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; 
+}
+
+.now-playing-artist {
+    margin: 4px 0 0 0;
+    font-size: 12px;
+    color: #8c92a0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.player-center-zone {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 40%;
+}
+
+.player-controls {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.player-controls button {
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 22px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s, color 0.2s;
+    outline: none;
+}
+
+.player-controls button:hover {
+    transform: scale(1.15);
+    color: #00ff87;
+}
+
+.player-right-zone {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    width: 30%;
+    min-width: 150px;
+}
+
+.volume-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.volume-btn {
+    background: none;
+    border: none;
+    color: #8c92a0;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s, transform 0.2s;
+    outline: none;
+}
+
+.volume-btn:hover {
+    color: #00ff87;
+}
+
+.volume-popover {
+    position: absolute;
+    bottom: 35px;
+    left: 50%;
+    transform: translateX(-50%) translateY(5px);
+    background: #161a23;
+    border: 1px solid #2c313d;
+    padding: 15px 8px 10px 8px; 
+    border-radius: 20px;
+    display: flex;
+    justify-content: center;
+    width: 20px;
+    height: 120px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    z-index: 1000;
+}
+
+.volume-container:hover .volume-popover {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
+}
+
+#volume-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 4px;
+    height: 120px;
+    background: #2c313d;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+    writing-mode: vertical-lr;
+    direction: rtl;
+}
+
+#volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #00ff87;
+    box-shadow: 0 0 6px #00ff87;
+}
+
+.timeline-container {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    gap: 12px;
+    color: #626875;
+    font-size: 12px;
+    font-family: monospace;
+    user-select: none;
+}
+
+#custom-timeline {
+    flex-grow: 1; 
+    position: relative;
+    height: 4px;
+    background: #2c313d;
+    cursor: pointer;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+}
+
+#custom-progress-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background: #00ff87;
+    width: 0%;
+    border-radius: 2px;
+}
+
+#custom-timeline-thumb {
+    position: absolute;
+    top: 50%;
+    left: 0%;
+    width: 12px;
+    height: 12px;
+    background: #00ff87;
+    border-radius: 50%;
+    transform: translate(-50%, -50%) !important;
+    box-shadow: 0 0 8px #00ff87;
+    cursor: grab;
+}
+
+/* Кнопка лайка в нижнем плеере */
+.player-heart-btn {
+    font-size: 20px !important; /* Чуть меньше основных кнопок управления для баланса */
+    margin-left: 8px; /* Небольшой отступ от кнопки "Вперед" как на скриншоте */
+    transition: transform 0.2s, opacity 0.2s;
+}
+
+.player-heart-btn:hover {
+    transform: scale(1.2) !important;
+}
+
+/* Общие стили для SVG-сердечек на карточках и в плеере */
+.heart-icon-svg {
+    width: 18px;
+    height: 18px;
+    fill: none; /* Внутри пусто */
+    stroke: #ffffff; /* Белая обводка по умолчанию */
+    stroke-width: 2;
+    transition: fill 0.2s ease, stroke 0.2s ease, transform 0.2s ease;
+}
+
+/* Состояние, когда трек лайкнут */
+.is-fav-active .heart-icon-svg {
+    fill: #00e676; /* Наш основной зеленый цвет для заливки */
+    stroke: #00e676; /* Обводка тоже становится зеленой */
+}
+
+/* Эффект при наведении на кнопку с сердечком */
+.card-heart-trigger:hover .heart-icon-svg,
+.player-heart-btn:hover .heart-icon-svg {
+    transform: scale(1.15);
+}
+
+/* Корректировка кнопки лайка в плеере, чтобы иконка была ровно по центру */
+.player-heart-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    margin-left: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    outline: none;
+    padding: 0;
+}

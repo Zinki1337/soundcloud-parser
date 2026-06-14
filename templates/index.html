@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Музыкальный плеер</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+</head>
+<body>
+
+    <div class="wrapper">
+        <header class="main-header">
+            <div class="tabs-container">
+                <div class="tabs-control">
+                    <button id="tab-wave-btn" class="tab-btn active">Миксер</button>
+                    <button id="tab-search-btn" class="tab-btn">Поиск треков</button>
+                    <button id="tab-favorites-btn" class="tab-btn" style="display: none;">Медиатека</button>
+                </div>
+                <div id="auth-zone" class="auth-zone">
+                    </div>
+            </div>
+
+            <div class="panels-container">
+                <div id="wave-panel" class="tab-panel active">
+                    <div class="wave-filters">
+                        <div class="filter-group">
+                            <label>Жанр / Направление:</label>
+                            <select id="wave-genre">
+                                <option value="all">Случайное</option>
+                                <option value="phonk">Phonk</option>
+                                <option value="rust">Hardstyle</option>
+                                <option value="lofi">Lofi</option>
+                                <option value="synth">Synthwave</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Настроение:</label>
+                            <select id="wave-vibe">
+                                <option value="all">Любое</option>
+                                <option value="aggressive">Энергичное</option>
+                                <option value="sad">Грустное</option>
+                                <option value="dark">Dark</option>
+                            </select>
+                        </div>
+                        <button id="start-wave-btn">Запустить</button>
+                    </div>
+                </div>
+
+                <div id="search-panel" class="tab-panel">
+                    <div class="search-container">
+                        <input type="text" id="search-input" placeholder="Введите жанр или исполнителя...">
+                        <button id="search-btn">Искать</button>
+                    </div>
+                </div>
+
+                <div id="favorites-panel" class="tab-panel">
+                    <div class="favorites-header-banner">
+                        Твои сохраненные треки
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="content-section">
+            <div class="tracks-grid"></div>
+        </main>
+    </div>
+
+    <div class="bottom-player-bar">
+        <div class="player-top-row">
+            <div class="player-left-zone">
+                <img class="now-playing-album-art" src="https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=300" alt="cover">
+                <div class="track-text-block">
+                    <h3 class="now-playing-title">Трек не выбран</h3>
+                    <p class="now-playing-artist">Запустите Волну или найдите трек</p>
+                </div>
+            </div>
+<div class="player-center-zone">
+    <div class="player-controls">
+        <button id="custom-prev" title="Предыдущий трек">⏮</button>
+        <button id="custom-play-pause" title="Воспроизведение / Пауза">▶</button>
+        <button id="custom-next" title="Следующий трек">⏭</button>
+        <!-- НОВАЯ КНОПКА ЛАЙКА РЯДОМ С "ВПЕРЕД" -->
+        <button id="custom-heart-btn" title="Добавить в медиатеку" class="player-heart-btn">
+    <svg class="heart-icon-svg" viewBox="0 0 24 24">
+        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+    </svg>
+</button>
+    </div>
+</div>
+            <div class="player-right-zone">
+                <div class="volume-container">
+                    <div class="volume-popover">
+                        <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.5">
+                    </div>
+                    <button class="volume-btn" id="mute-btn" title="Выключить звук">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="timeline-container">
+            <span id="current-time">0:00</span>
+            <div id="custom-timeline">
+                <div id="custom-progress-fill"></div>
+                <div id="custom-timeline-thumb"></div>
+            </div>
+            <span id="duration-time">0:00</span>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.8/hls.min.js"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

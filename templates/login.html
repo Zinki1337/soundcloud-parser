@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход в аккаунт</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+</head>
+<body>
+
+    <div class="auth-container">
+        <h2>Войти</h2>
+        
+        <div class="input-group">
+            <label for="username">Имя пользователя</label>
+            <input type="text" id="username" placeholder="Введите ваш логин" autocomplete="off">
+        </div>
+        
+        <div class="input-group">
+            <label for="password">Пароль</label>
+            <input type="password" id="password" placeholder="Введите ваш пароль">
+        </div>
+        
+        <button class="auth-btn" onclick="handleLogin()">Войти</button>
+        <div id="error-box" class="error-msg"></div>
+        
+        <div class="switch-link">
+            Нет аккаунта? <a href="/register_page">Зарегистрироваться</a>
+        </div>
+    </div>
+
+    <script>
+        async function handleLogin() {
+            const userInp = document.getElementById('username').value.trim();
+            const passInp = document.getElementById('password').value.trim();
+            const errorBox = document.getElementById('error-box');
+            
+            errorBox.style.display = 'none';
+
+            if (!userInp || !passInp) {
+                errorBox.innerText = "Заполните все поля";
+                errorBox.style.display = 'block';
+                return;
+            }
+
+            try {
+                let res = await fetch('/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username: userInp, password: passInp})
+                });
+                
+                let data = await res.json();
+                
+                if (res.ok) {
+                    localStorage.setItem('username', data.username);
+                    window.location.href = '/';
+                } else {
+                    errorBox.innerText = data.message || "Ошибка входа";
+                    errorBox.style.display = 'block';
+                }
+            } catch (err) {
+                errorBox.innerText = "Ошибка соединения с сервером";
+                errorBox.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
