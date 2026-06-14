@@ -3,6 +3,7 @@ import random
 import requests
 import urllib.parse
 from datetime import datetime
+import psycopg2
 import sqlite3
 from flask import Flask, request, jsonify, render_template, Response, stream_with_context, session, redirect, url_for
 from flask_cors import CORS
@@ -13,17 +14,35 @@ app.secret_key = 'super_secret_key_change_me_to_something_complex'
 CORS(app)
 
 CLIENT_ID = "mQqpsaUSNZxyik7mV9y4D6dunaNX3mrQ&stage"
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
+# --- Универсальная функция подключения ---
+def get_db_connection():
+    if DATABASE_URL:
+        # Для PostgreSQL на Render
+        return psycopg2.connect(DATABASE_URL, sslmode='require')
+    else:
+        # Для локальной разработки на ПК (SQLite)
+        return sqlite3.connect('music_app.db')
 
 # --- Инициализация Базы Данных ---
 def init_db():
-    conn = sqlite3.connect('music_app.db')
+    conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('''CREATE TABLE IF NOT EXISTS users 
-                      (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT)''')
-    cursor.execute('''CREATE TABLE IF NOT EXISTS favorites 
-                      (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, track_name TEXT, 
-                       artist TEXT, stream_url TEXT, cover_url TEXT,
-                       FOREIGN KEY(user_id) REFERENCES users(id))''')
+    if DATABASE_URL:
+        cursor.execute('''CREATE TABLE IF NOT EXISTS users 
+                          (id SERIAL PRIMARY KEY, username TEXT UNIQUE, password TEXT)''')
+        cursor.execute('''CREATE TABLE IF NOT EXISTS favorites 
+                          (id SERIAL PRIMARY KEY, user_id INTEGER, track_name TEXT, 
+                           artist TEXT, stream_url TEXT, cover_url TEXT,
+                           FOREIGN KEY(user_id) REFERENCES users(id))''')
+    else:
+        cursor.execute('''CREATE TABLE IF NOT EXISTS users 
+                          (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT)''')
+        cursor.execute('''CREATE TABLE IF NOT EXISTS favorites 
+                          (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, track_name TEXT, 
+                           artist TEXT, stream_url TEXT, cover_url TEXT,
+                           FOREIGN KEY(user_id) REFERENCES users(id))''')
     conn.commit()
     conn.close()
 
@@ -37,10 +56,12 @@ def mark_favorites(tracks):
             track['is_favorite'] = False
         return tracks
 
-    conn = sqlite3.connect('music_app.db')
+    conn = get_db_connection()
     cursor = conn.cursor()
-    # Получаем все лайкнутые треки пользователя в виде множества кортежей для быстрого поиска
-    fav_rows = cursor.execute("SELECT track_name, artist FROM favorites WHERE user_id = ?", (user_id,)).fetchall()
+    
+    query = "SELECT track_name, artist FROM favorites WHERE user_id = %s" if DATABASE_URL else "SELECT track_name, artist FROM favorites WHERE user_id = ?"
+    cursor.execute(query, (user_id,))
+    fav_rows = cursor.fetchall()
     conn.close()
 
     fav_set = {(row[0].lower().strip(), row[1].lower().strip()) for row in fav_rows}
@@ -73,9 +94,10 @@ def register():
     data = request.get_json()
     hashed_pw = generate_password_hash(data['password'])
     try:
-        conn = sqlite3.connect('music_app.db')
+        conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (data['username'], hashed_pw))
+        query = "INSERT INTO users (username, password) VALUES (%s, %s)" if DATABASE_URL else "INSERT INTO users (username, password) VALUES (?, ?)"
+        cursor.execute(query, (data['username'], hashed_pw))
         conn.commit()
         conn.close()
         return jsonify({"status": "success"})
@@ -85,10 +107,13 @@ def register():
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
-    conn = sqlite3.connect('music_app.db')
+    conn = get_db_connection()
     cursor = conn.cursor()
-    user = cursor.execute("SELECT * FROM users WHERE username = ?", (data['username'],)).fetchone()
+    query = "SELECT * FROM users WHERE username = %s" if DATABASE_URL else "SELECT * FROM users WHERE username = ?"
+    cursor.execute(query, (data['username'],))
+    user = cursor.fetchone()
     conn.close()
+    
     if user and check_password_hash(user[2], data['password']):
         session['user_id'] = user[0]
         return jsonify({"status": "success", "username": user[1]})
@@ -109,24 +134,34 @@ def add_favorite():
         return jsonify({"status": "error", "message": "Нужно войти в систему"}), 401
         
     track = request.get_json()
-    conn = sqlite3.connect('music_app.db')
+    conn = get_db_connection()
     cursor = conn.cursor()
     
-    existing = cursor.execute("""
+    query_check = """
+        SELECT id FROM favorites 
+        WHERE user_id = %s AND track_name = %s AND artist = %s
+    """ if DATABASE_URL else """
         SELECT id FROM favorites 
         WHERE user_id = ? AND track_name = ? AND artist = ?
-    """, (user_id, track['name'], track['artist'])).fetchone()
+    """
+    cursor.execute(query_check, (user_id, track['name'], track['artist']))
+    existing = cursor.fetchone()
     
     if existing:
-        cursor.execute("DELETE FROM favorites WHERE id = ?", (existing[0],))
+        query_del = "DELETE FROM favorites WHERE id = %s" if DATABASE_URL else "DELETE FROM favorites WHERE id = ?"
+        cursor.execute(query_del, (existing[0],))
         conn.commit()
         conn.close()
         return jsonify({"status": "success", "action": "removed"})
     else:
-        cursor.execute("""
+        query_ins = """
+            INSERT INTO favorites (user_id, track_name, artist, stream_url, cover_url) 
+            VALUES (%s, %s, %s, %s, %s)
+        """ if DATABASE_URL else """
             INSERT INTO favorites (user_id, track_name, artist, stream_url, cover_url) 
             VALUES (?, ?, ?, ?, ?)
-        """, (user_id, track['name'], track['artist'], track['stream_node_url'], track['cover_art_url']))
+        """
+        cursor.execute(query_ins, (user_id, track['name'], track['artist'], track['stream_node_url'], track['cover_art_url']))
         conn.commit()
         conn.close()
         return jsonify({"status": "success", "action": "added"})
@@ -137,21 +172,29 @@ def get_favorites():
     if not user_id:
         return jsonify({"status": "error", "message": "Нужно войти в систему"}), 401
         
-    conn = sqlite3.connect('music_app.db')
-    conn.row_factory = sqlite3.Row 
+    conn = get_db_connection()
     cursor = conn.cursor()
     
-    rows = cursor.execute("""
-        SELECT track_name as name, artist, stream_url as stream_node_url, cover_url as cover_art_url 
+    query = """
+        SELECT track_name, artist, stream_url, cover_url 
+        FROM favorites WHERE user_id = %s ORDER BY id DESC
+    """ if DATABASE_URL else """
+        SELECT track_name, artist, stream_url, cover_url 
         FROM favorites WHERE user_id = ? ORDER BY id DESC
-    """, (user_id,)).fetchall()
-    
+    """
+    cursor.execute(query, (user_id,))
+    rows = cursor.fetchall()
     conn.close()
     
-    tracks = [dict(row) for row in rows]
-    # Все треки из медиатеки априори являются лайкнутыми
-    for track in tracks:
-        track['is_favorite'] = True
+    tracks = []
+    for row in rows:
+        tracks.append({
+            "name": row[0],
+            "artist": row[1],
+            "stream_node_url": row[2],
+            "cover_art_url": row[3],
+            "is_favorite": True
+        })
         
     return jsonify({"status": "success", "tracks": tracks})
 
@@ -197,7 +240,6 @@ def search():
     req_data = request.get_json() or {}
     query = req_data.get('query', 'phonk')
     playlist_data = get_soundcloud_tracks(query, limit=30)
-    # Проверяем и маркируем лайкнутые треки перед отправкой
     playlist_data = mark_favorites(playlist_data)
     return jsonify({"status": "success", "tracks": playlist_data})
 
@@ -226,7 +268,6 @@ def wave():
         raw_tracks.extend(get_soundcloud_tracks(tag, limit=10))
         
     random.shuffle(raw_tracks)
-    # Проверяем и маркируем лайкнутые треки перед отправкой
     raw_tracks = mark_favorites(raw_tracks)
     return jsonify({"status": "success", "tracks": raw_tracks[:25]})
 
